@@ -1,35 +1,34 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const form = document.getElementById('ai-form');
-  const promptInput = document.getElementById('prompt');
-  const responseBox = document.getElementById('response');
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const prompt = promptInput.value.trim();
+  responseBox.textContent = "Queued...";
 
-  if (!form || !promptInput || !responseBox) {
-    console.error("Form or input elements not found!");
-    return;
-  }
+  try {
+    const res = await fetch('https://ai.potatogamer.uk/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+    const data = await res.json();
+    const taskId = data.task_id;
 
-    const prompt = promptInput.value.trim();
-    if (!prompt) return;
+    // Polling loop
+    let done = false;
+    while (!done) {
+      const statusRes = await fetch(`https://ai.potatogamer.uk/result/${taskId}`);
+      const statusData = await statusRes.json();
 
-    responseBox.textContent = "Thinking...";
-
-    try {
-      const res = await fetch('https://ai.potatogamer.uk/ask', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ prompt })
-      });
-
-      const data = await res.json();
-      responseBox.textContent = data.response || "No response from PotatoGPT.";
-    } catch (err) {
-      responseBox.textContent = "Error contacting AI. Try again later.";
-      console.error(err);
+      if (statusData.status === 'done') {
+        responseBox.textContent = statusData.response;
+        done = true;
+      } else {
+        responseBox.textContent += ".";
+        await new Promise(r => setTimeout(r, 1000)); // Wait 1 second
+      }
     }
-  });
+  } catch (err) {
+    responseBox.textContent = "Error reaching PotatoGPT.";
+    console.error(err);
+  }
 });
