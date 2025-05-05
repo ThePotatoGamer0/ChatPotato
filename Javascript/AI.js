@@ -51,12 +51,12 @@ function renderChatHistory(chatHistory) {
 // Function to handle form submission and send prompt to the server
 document.getElementById('ai-form').addEventListener('submit', async function(event) {
   event.preventDefault();
-  const prompt = document.getElementById('prompt').value;
   document.getElementById('response').innerText = "Thinking...";
+  let chatHistory = getCookie('chatHistory');
   if (!chatHistory) {
-    const chatHistory = {};
+    chatHistory = {};
   }
-  prompt = "History : (" + JSON.stringify(chatHistory) + ") Prompt: " + prompt; // Append chat history to the prompt
+  const prompt = "Chat History : (" + JSON.stringify(chatHistory) + ") Prompt: " + document.getElementById('prompt').value; // Append chat history to the prompt
   try {
     const response = await fetch(`${API_BASE}/ask`, {
       method: 'POST',
