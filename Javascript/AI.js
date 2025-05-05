@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   form.addEventListener('submit', async (e) => {
-    e.preventDefault(); // 💡 Prevent default page reload
+    e.preventDefault();
 
     const prompt = promptInput.value.trim();
     if (!prompt) return;
