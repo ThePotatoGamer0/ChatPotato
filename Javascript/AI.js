@@ -1,34 +1,42 @@
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const prompt = promptInput.value.trim();
-  responseBox.textContent = "Queued...";
+document.querySelector("#ai-form").addEventListener("submit", function(event) {
+  event.preventDefault();  // Prevent form from submitting and refreshing the page
 
-  try {
-    const res = await fetch('https://ai.potatogamer.uk/ask', {
+  const prompt = document.querySelector("#prompt").value;
+  fetch('/ask', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt })
-    });
-
-    const data = await res.json();
-    const taskId = data.task_id;
-
-    // Polling loop
-    let done = false;
-    while (!done) {
-      const statusRes = await fetch(`https://ai.potatogamer.uk/result/${taskId}`);
-      const statusData = await statusRes.json();
-
-      if (statusData.status === 'done') {
-        responseBox.textContent = statusData.response;
-        done = true;
+      headers: {
+          'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ prompt: prompt })
+  })
+  .then(response => response.json())
+  .then(data => {
+      if (data.task_id) {
+          document.getElementById("response").innerText = 'Processing...';
+          getResult(data.task_id);  // Start polling the result with the task_id
       } else {
-        responseBox.textContent += ".";
-        await new Promise(r => setTimeout(r, 1000)); // Wait 1 second
+          document.getElementById("response").innerText = 'Error: No task ID received.';
       }
-    }
-  } catch (err) {
-    responseBox.textContent = "Error reaching PotatoGPT.";
-    console.error(err);
-  }
+  })
+  .catch(error => {
+      console.error('Error:', error);
+      document.getElementById("response").innerText = 'Error during request.';
+  });
 });
+
+// Function to fetch result from the server
+function getResult(task_id) {
+  fetch(`/result/${task_id}`)
+      .then(response => response.json())
+      .then(data => {
+          if (data.status === 'done') {
+              document.getElementById("response").innerText = data.response;  // Display the response
+          } else {
+              setTimeout(() => getResult(task_id), 1000);  // Retry every second if pending
+          }
+      })
+      .catch(error => {
+          console.error('Error fetching result:', error);
+          document.getElementById("response").innerText = 'Error retrieving response.';
+      });
+}
