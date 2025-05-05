@@ -1,42 +1,37 @@
 document.querySelector("#ai-form").addEventListener("submit", function(event) {
-  event.preventDefault();  // Prevent form from submitting and refreshing the page
+  event.preventDefault();  // Prevent the form from refreshing the page
 
-  const prompt = document.querySelector("#prompt").value;
-  fetch('/ask', {
-      method: 'POST',
-      headers: {
-          'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ prompt: prompt })
+  var prompt = document.querySelector("#prompt").value;
+  var resultElement = document.querySelector("#response");
+
+  resultElement.textContent = "Thinking...";  // Indicate the system is processing
+
+  // Step 1: Send the prompt to the backend
+  fetch('http://localhost:5000/ask', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: prompt })
   })
   .then(response => response.json())
   .then(data => {
-      if (data.task_id) {
-          document.getElementById("response").innerText = 'Processing...';
-          getResult(data.task_id);  // Start polling the result with the task_id
-      } else {
-          document.getElementById("response").innerText = 'Error: No task ID received.';
-      }
+    var taskId = data.task_id;
+
+    // Step 2: Poll the server for the result
+    var pollInterval = setInterval(function() {
+      fetch(`http://localhost:5000/result/${taskId}`)
+        .then(response => response.json())
+        .then(resultData => {
+          if (resultData.status === "done") {
+            resultElement.textContent = resultData.response;
+            clearInterval(pollInterval);  // Stop polling when the result is ready
+          } else {
+            resultElement.textContent = "Still processing...";
+          }
+        });
+    }, 2000);  // Poll every 2 seconds
   })
   .catch(error => {
-      console.error('Error:', error);
-      document.getElementById("response").innerText = 'Error during request.';
+    console.error('Error:', error);
+    resultElement.textContent = "Error occurred. Please try again.";
   });
 });
-
-// Function to fetch result from the server
-function getResult(task_id) {
-  fetch(`/result/${task_id}`)
-      .then(response => response.json())
-      .then(data => {
-          if (data.status === 'done') {
-              document.getElementById("response").innerText = data.response;  // Display the response
-          } else {
-              setTimeout(() => getResult(task_id), 1000);  // Retry every second if pending
-          }
-      })
-      .catch(error => {
-          console.error('Error fetching result:', error);
-          document.getElementById("response").innerText = 'Error retrieving response.';
-      });
-}
