@@ -56,12 +56,13 @@ document.getElementById('ai-form').addEventListener('submit', async function(eve
   if (!chatHistory) {
     chatHistory = {};
   }
-  const prompt = "Chat History : (" + JSON.stringify(chatHistory) + ") Prompt: " + document.getElementById('prompt').value; // Append chat history to the prompt
+  let prompt = document.getElementById('prompt').value;
+  const promptwhistory = "Chat History: (" + JSON.stringify(chatHistory) + ") Prompt: " + prompt // Append chat history to the prompt
   try {
     const response = await fetch(`${API_BASE}/ask`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: prompt }),
+      body: JSON.stringify({ prompt: promptwhistory }),
     });
 
     const data = await response.json();
