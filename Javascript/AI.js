@@ -1,37 +1,91 @@
-document.querySelector("#ai-form").addEventListener("submit", function(event) {
-  event.preventDefault();  // Prevent the form from refreshing the page
+// Function to get cookies by name
+function getCookie(name) {
+  let match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : null;
+}
 
-  var prompt = document.querySelector("#prompt").value;
-  var resultElement = document.querySelector("#response");
+// Function to set cookies
+function setCookie(name, value, days) {
+  const d = new Date();
+  d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+  let expires = "expires=" + d.toUTCString();
+  document.cookie = name + "=" + value + ";" + expires + ";path=/";
+}
 
-  resultElement.textContent = "Thinking...";  // Indicate the system is processing
+// Function to update the chat UI and store it in cookies
+function updateChatHistory(prompt, response) {
+  let chatHistory = getCookie('chatHistory');
+  chatHistory = chatHistory ? JSON.parse(chatHistory) : [];
+  
+  // Add the new prompt and response to the history
+  chatHistory.push({ prompt: prompt, response: response });
 
-  // Step 1: Send the prompt to the backend
-  fetch('http://localhost:5000/ask', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: prompt })
-  })
-  .then(response => response.json())
-  .then(data => {
-    var taskId = data.task_id;
+  // If history exceeds 10 entries, remove the oldest
+  if (chatHistory.length > 10) {
+      chatHistory.shift();
+  }
 
-    // Step 2: Poll the server for the result
-    var pollInterval = setInterval(function() {
-      fetch(`http://localhost:5000/result/${taskId}`)
-        .then(response => response.json())
-        .then(resultData => {
-          if (resultData.status === "done") {
-            resultElement.textContent = resultData.response;
-            clearInterval(pollInterval);  // Stop polling when the result is ready
-          } else {
-            resultElement.textContent = "Still processing...";
-          }
-        });
-    }, 2000);  // Poll every 2 seconds
-  })
-  .catch(error => {
-    console.error('Error:', error);
-    resultElement.textContent = "Error occurred. Please try again.";
+  // Save the updated history in cookies (convert it to a JSON string)
+  setCookie('chatHistory', JSON.stringify(chatHistory), 7);
+
+  // Render the updated chat history in the UI
+  renderChatHistory(chatHistory);
+}
+
+// Function to render chat history in the UI
+function renderChatHistory(chatHistory) {
+  const chatBox = document.getElementById('chat-history');
+  chatBox.innerHTML = ''; // Clear the current chat history in the UI
+
+  chatHistory.forEach(item => {
+      const chatItem = document.createElement('div');
+      chatItem.classList.add('chat-item');
+      chatItem.innerHTML = `<strong>You:</strong> ${item.prompt}<br><strong>PotatoGPT:</strong> ${item.response}`;
+      chatBox.appendChild(chatItem);
   });
+}
+
+// Function to handle form submission and send prompt to the server
+document.getElementById('ai-form').addEventListener('submit', async function(event) {
+  event.preventDefault();
+  const prompt = document.getElementById('prompt').value;
+  document.getElementById('response').innerText = "Thinking...";
+
+  try {
+      const response = await fetch('/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: prompt }),
+      });
+      
+      const data = await response.json();
+      const taskId = data.task_id;
+
+      // Get the result after processing
+      let result;
+      let status;
+      do {
+          const resultResponse = await fetch(`/result/${taskId}`);
+          const resultData = await resultResponse.json();
+          status = resultData.status;
+
+          if (status === 'done') {
+              result = resultData.response;
+              document.getElementById('response').innerText = result;
+              updateChatHistory(prompt, result); // Update chat history with the new response
+          }
+      } while (status !== 'done');
+
+  } catch (error) {
+      console.error("Error:", error);
+      document.getElementById('response').innerText = "Error fetching response.";
+  }
 });
+
+// On page load, load and render the chat history from cookies
+window.onload = function() {
+  const chatHistory = getCookie('chatHistory');
+  if (chatHistory) {
+      renderChatHistory(JSON.parse(chatHistory));
+  }
+};
