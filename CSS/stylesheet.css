@@ -1,0 +1,302 @@
+body {
+    background-color: #111111;
+    color: #FFFFFF;
+    font-family: Verdana;
+    font-size: clamp(16px, 2vw, 24px);
+    transition: 0.5s;
+    padding-top: 60px;
+}
+
+.content {
+    display: none;
+}
+
+.loader {
+    padding-top: 50vh;
+    padding-left: 40vw;
+    text-align: center;
+    width:fit-content;
+}
+
+#typing-text {
+    font-family: Verdana;
+    white-space: nowrap;
+    overflow: hidden;
+    border-right: .15em solid white; /* The typwriter cursor */
+    font-size: 5vw;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(1000px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0px);
+    }
+  }
+  
+  @keyframes fadeOut {
+    from {
+      opacity: 1;
+      transform: translateY(0px);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(100px);
+    }
+  }
+
+  @keyframes fadeLeft {
+    from {
+      opacity: 1;
+      transform: translateX(0px);
+    }
+    to {
+      opacity: 0;
+      transform: translateX(-1000px);
+    }
+  }
+
+  @keyframes fadeRight {
+    from {
+      opacity: 1;
+      transform: translateX(0px);
+    }
+    to {
+      opacity: 0;
+      transform: translateX(1000px);
+    }
+  }
+
+  @keyframes fadeInFromLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-1000px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0px);
+    }
+  }
+  
+  @keyframes fadeInFromRight {
+    from {
+      opacity: 0;
+      transform: translateX(1000px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0px);
+    }
+  }
+  
+  .page-left-in {
+    animation: fadeInFromLeft 500ms ease-in-out forwards;
+  }
+  
+  .page-right-in {
+    animation: fadeInFromRight 500ms ease-in-out forwards;
+  }  
+
+  .fade-in {
+    animation: fadeIn 2s ease forwards;
+  }
+
+  .fastfade-in {
+    animation: fadeIn 300ms ease forwards;
+  }
+
+  .fade-out {
+    animation: fadeOut 500ms ease forwards;
+  }
+
+  .fade-left {
+    animation: fadeLeft 500ms ease-in-out forwards;
+  }
+
+  .fade-right {
+    animation: fadeRight 500ms ease-in-out forwards;
+  }
+
+nav {
+    display: flex;
+    background-color: black; /* Light grey background */
+    padding: 10px;
+    border-radius: 25px; /* Pill shape */
+    width: 100%; /* Viewport width */
+    box-sizing: border-box; /* Include padding in width */
+    overflow: hidden; /* Prevent content from overflowing rounded corners */
+  
+    /* Fixed positioning */
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100; /* Ensure it's on top of other content */
+  }
+  
+  nav a {
+    display: block;
+    color: white; /* Dark text color */
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    flex-grow: 1; /* Equal width for each item */
+    border-radius: 25px; /* Rounded corners for each item */
+    margin: 0 5px; /* Spacing between items */
+    transition: 1s;
+  }
+  
+  nav a:hover {
+    background-color: #777777; /* Lighter grey on hover */
+    color: white;
+    scale:1.1;
+  }
+  
+  /* Optional: Style for the active/current page */
+  nav a.active {
+    background-color: #555555; /* Slightly darker grey for active item */
+    color: grey;
+  }
+
+  .button {
+    display: block;
+    color: white;
+    background-color: black;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    flex-grow: 1; /* Equal width for each item */
+    border-radius: 25px; /* Rounded corners for each item */
+    margin: 0 5px; /* Spacing between items */
+    transition: 1s;
+  }
+
+  .button:hover {
+    background-color: #777777; /* Lighter grey on hover */
+    color: white;
+    scale:1.1;
+  }
+
+  /* CSS for the Switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+  }
+  
+div.switchdiv {
+    text-align: left;
+    margin-bottom: 10px;
+}
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #FF0000;
+    box-shadow: 100px, black, inset;
+    transition: .4s;
+    scale:1
+  }
+  
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: black;
+    transition: .4s;
+  }
+  
+  input:checked + .slider {
+    background-color: #00FF00; /* Example active color */
+  }
+  
+  input:focus + .slider {
+    box-shadow: 0 0 1px black;
+  }
+  
+  input:checked + .slider:before {
+    transform: translateX(26px);
+  }
+  
+  .slider.round {
+    border-radius: 34px;
+  }
+  
+  .slider.round:before {
+    border-radius: 50%;
+  }
+  
+  /* CSS to hide the spicy Option by default (optional) */
+  .spicyNavItem {
+    display: none; /* Initially hide the spicy Option */
+  }
+
+  .content-container {
+    display: flex; /* Enable Flexbox layout */
+    width: 100vw; /* Viewport width */
+    box-sizing: border-box; /* Include padding and border in element's total width and height */
+  }
+  
+  .image-section {
+    flex: 0.5; /* Image section takes up 1/2 of the container's width (initially) */
+    overflow: hidden; /* To handle image overflow if it's larger than the container */
+  }
+  
+  .image-section img {
+    display: block; /* Remove default inline image spacing */
+    width: 100%; /* Image fills the width of its container */
+    height: auto; /* Maintain image aspect ratio */
+    border-radius: 50%;
+  }
+  
+  .text-section {
+    flex: 1; /* Text section takes up 1/2 of the container's width (initially) */
+    padding: 20px; /* Add some padding around the text */
+    display: flex; /* Enable flexbox in text section for vertical alignment */
+    flex-direction: column; /* Stack header and paragraph vertically */
+    justify-content: center; /* Vertically center content in text section */
+  }
+  
+  .text-section h2 {
+    font-size: 2em; /* Example header size, adjust as needed */
+    margin-bottom: 10px; /* Spacing between header and paragraph */
+  }
+  
+  .text-section p {
+    font-size: 1.1em; /* Example paragraph size, adjust as needed */
+    line-height: 1.6; /* Improve paragraph readability */
+  }
+
+  @media (max-width: 768px) {
+    .content-container {
+      flex-direction: column; /* Stack image and text vertically on smaller screens */
+      height: auto; /* Allow container to grow based on content height */
+    }
+  
+    .image-section {
+      flex: none; /* Reset flex for image section */
+      width: 100%; /* Image section takes full width on smaller screens */
+      height: auto; /* Fixed height for image section on smaller screens, adjust as needed */
+    }
+  
+    .text-section {
+      flex: none; /* Reset flex for text section */
+      width: 100%; /* Text section takes full width on smaller screens */
+      padding: 20px; /* Keep padding */
+    }
+  }
