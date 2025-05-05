@@ -53,6 +53,9 @@ document.getElementById('ai-form').addEventListener('submit', async function(eve
   event.preventDefault();
   const prompt = document.getElementById('prompt').value;
   document.getElementById('response').innerText = "Thinking...";
+  if (!chatHistory) {
+    const chatHistory = {};
+  }
   prompt = "History : (" + JSON.stringify(chatHistory) + ") Prompt: " + prompt; // Append chat history to the prompt
   try {
     const response = await fetch(`${API_BASE}/ask`, {
