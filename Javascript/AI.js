@@ -1,3 +1,6 @@
+// Set the API base URL
+const API_BASE = 'https://ai.potatogamer.uk';
+
 // Function to get cookies by name
 function getCookie(name) {
   let match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
@@ -16,13 +19,13 @@ function setCookie(name, value, days) {
 function updateChatHistory(prompt, response) {
   let chatHistory = getCookie('chatHistory');
   chatHistory = chatHistory ? JSON.parse(chatHistory) : [];
-  
+
   // Add the new prompt and response to the history
   chatHistory.push({ prompt: prompt, response: response });
 
   // If history exceeds 10 entries, remove the oldest
   if (chatHistory.length > 10) {
-      chatHistory.shift();
+    chatHistory.shift();
   }
 
   // Save the updated history in cookies (convert it to a JSON string)
@@ -38,10 +41,10 @@ function renderChatHistory(chatHistory) {
   chatBox.innerHTML = ''; // Clear the current chat history in the UI
 
   chatHistory.forEach(item => {
-      const chatItem = document.createElement('div');
-      chatItem.classList.add('chat-item');
-      chatItem.innerHTML = `<strong>You:</strong> ${item.prompt}<br><strong>PotatoGPT:</strong> ${item.response}`;
-      chatBox.appendChild(chatItem);
+    const chatItem = document.createElement('div');
+    chatItem.classList.add('chat-item');
+    chatItem.innerHTML = `<strong>You:</strong> ${item.prompt}<br><strong>PotatoGPT:</strong> ${item.response}`;
+    chatBox.appendChild(chatItem);
   });
 }
 
@@ -52,40 +55,42 @@ document.getElementById('ai-form').addEventListener('submit', async function(eve
   document.getElementById('response').innerText = "Thinking...";
 
   try {
-      const response = await fetch('/ask', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: prompt }),
-      });
-      
-      const data = await response.json();
-      const taskId = data.task_id;
+    const response = await fetch(`${API_BASE}/ask`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: prompt }),
+    });
 
-      // Get the result after processing
-      let result;
-      let status;
-      do {
-          const resultResponse = await fetch(`/result/${taskId}`);
-          const resultData = await resultResponse.json();
-          status = resultData.status;
+    const data = await response.json();
+    const taskId = data.task_id;
 
-          if (status === 'done') {
-              result = resultData.response;
-              document.getElementById('response').innerText = result;
-              updateChatHistory(prompt, result); // Update chat history with the new response
-          }
-      } while (status !== 'done');
+    // Get the result after processing
+    let result;
+    let status;
+    do {
+      const resultResponse = await fetch(`${API_BASE}/result/${taskId}`);
+      const resultData = await resultResponse.json();
+      status = resultData.status;
+
+      if (status === 'done') {
+        result = resultData.response;
+        document.getElementById('response').innerText = result;
+        updateChatHistory(prompt, result); // Update chat history with the new response
+      } else {
+        await new Promise(resolve => setTimeout(resolve, 1000)); // wait before retrying
+      }
+    } while (status !== 'done');
 
   } catch (error) {
-      console.error("Error:", error);
-      document.getElementById('response').innerText = "Error fetching response.";
+    console.error("Error:", error);
+    document.getElementById('response').innerText = "Error fetching response.";
   }
 });
 
 // On page load, load and render the chat history from cookies
-window.onload = function() {
+window.onload = function () {
   const chatHistory = getCookie('chatHistory');
   if (chatHistory) {
-      renderChatHistory(JSON.parse(chatHistory));
+    renderChatHistory(JSON.parse(chatHistory));
   }
 };
