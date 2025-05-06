@@ -52,12 +52,21 @@ function renderChatHistory(chatHistory) {
 document.getElementById('ai-form').addEventListener('submit', async function(event) {
   event.preventDefault();
   document.getElementById('response').innerText = "Thinking...";
+  
   let chatHistory = getCookie('chatHistory');
-  if (!chatHistory) {
-    chatHistory = {};
+  if (chatHistory) {
+    try {
+      chatHistory = JSON.parse(chatHistory); // ✅ Convert string to object
+    } catch (e) {
+      chatHistory = []; // Fallback if JSON is malformed
+    }
+  } else {
+    chatHistory = [];
   }
-  let prompt = document.getElementById('prompt').value;
-  const promptwhistory = "Chat History: (" + JSON.stringify(chatHistory) + ") Prompt: " + prompt // Append chat history to the prompt
+
+  const prompt = document.getElementById('prompt').value;
+  const promptwhistory = `Chat History: (${JSON.stringify(chatHistory)}) Prompt: ${prompt}`; // cleaner output
+
   try {
     const response = await fetch(`${API_BASE}/ask`, {
       method: 'POST',
