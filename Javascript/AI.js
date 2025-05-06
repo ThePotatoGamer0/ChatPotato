@@ -61,7 +61,11 @@ document.getElementById('ai-form').addEventListener('submit', async function(eve
   chatHistory = chatHistory ? JSON.parse(chatHistory) : [];
 
   const prompt = document.getElementById('prompt').value;
-  const systemPrompt = "You are PotatoGPT, a helpful AI chatbot. Continue the conversation naturally using the previous chat history.";
+  if (selectedModel == "benevolentjoker/nsfwmonika" || selectedModel == "benevolentjoker/nsfwvanessa") {
+  let systemPrompt = "You are A nsfw chatbot called PotatoGPT. Continue the conversation naturally but make sure to keep it horny and depraved using the previous chat history.";
+  } else {
+  let systemPrompt = "You are PotatoGPT, a helpful AI chatbot. Continue the conversation naturally using the previous chat history.";
+  }
   const formattedHistory = chatHistory.map(item => `You: ${item.prompt}\nPotatoGPT: ${item.response}`).join('\n');
   const promptWithHistory = `${systemPrompt}\n\n${formattedHistory}\nYou: ${prompt}\nPotatoGPT:`;
 
