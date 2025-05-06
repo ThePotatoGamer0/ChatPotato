@@ -101,7 +101,7 @@ window.onload = function () {
 };
 
 // Optional: Clear chat history button
-document.getElementById('clear-history').addEventListener('click', function () {
+document.getElementById('clear-chat-history').addEventListener('click', function () {
   localStorage.removeItem('chatHistory');
   renderChatHistory([]);
   document.getElementById('response').innerText = '';
