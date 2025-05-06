@@ -48,6 +48,10 @@ function renderChatHistory(chatHistory) {
   });
 }
 
+function formatChatHistory(historyArray) {
+  return historyArray.map(item => `You: ${item.prompt}\nPotatoGPT: ${item.response}`).join('\n');
+}
+
 // Function to handle form submission and send prompt to the server
 document.getElementById('ai-form').addEventListener('submit', async function(event) {
   event.preventDefault();
@@ -65,13 +69,17 @@ document.getElementById('ai-form').addEventListener('submit', async function(eve
   }
 
   const prompt = document.getElementById('prompt').value;
-  const promptwhistory = `Chat History: (${JSON.stringify(chatHistory)}) Prompt: ${prompt}`; // cleaner output
+  const systemPrompt = "You are PotatoGPT, a helpful AI chatbot. Continue the conversation naturally using the previous chat history. Do not repeat or describe the history — just answer the new user input appropriately.";
+
+  const formattedHistory = formatChatHistory(chatHistory);
+  const promptWithHistory = `${systemPrompt}\n\n${formattedHistory}\nYou: ${prompt}\nPotatoGPT:`;
+
 
   try {
     const response = await fetch(`${API_BASE}/ask`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: promptwhistory }),
+      body: JSON.stringify({ prompt: promptWithHistory }),
     });
 
     const data = await response.json();
