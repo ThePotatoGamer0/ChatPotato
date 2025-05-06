@@ -54,11 +54,14 @@ document.getElementById('ai-form').addEventListener('submit', async function(eve
   event.preventDefault();
   document.getElementById('response').innerText = "Thinking...";
 
+  // Get selected model
+  const model = document.getElementById('model-select').value;
+
+  // Get chat history
   let chatHistory = getChatHistory();
   const prompt = document.getElementById('prompt').value;
 
-  const systemPrompt = "You are PotatoGPT, a helpful AI chatbot. Continue the conversation naturally using the previous chat history. Do not repeat or describe the history — just answer the new user input appropriately.";
-
+  const systemPrompt = "You are PotatoGPT, a helpful AI chatbot...";
   const formattedHistory = formatChatHistory(chatHistory);
   const promptWithHistory = `${systemPrompt}\n\n${formattedHistory}\nYou: ${prompt}\nPotatoGPT:`;
 
@@ -66,7 +69,10 @@ document.getElementById('ai-form').addEventListener('submit', async function(eve
     const response = await fetch(`${API_BASE}/ask`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: promptWithHistory }),
+      body: JSON.stringify({
+        prompt: promptWithHistory,
+        model: model  // <-- include model in request
+      }),
     });
 
     const data = await response.json();
