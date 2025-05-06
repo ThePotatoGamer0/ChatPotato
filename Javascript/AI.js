@@ -55,14 +55,14 @@ document.getElementById('ai-form').addEventListener('submit', async function(eve
   document.getElementById('response').innerText = "Thinking...";
 
   // Get selected model
-  const model = document.getElementById('model-select').value;
+  const selectedModel = document.getElementById('model-select').value;
 
-  // Get chat history
-  let chatHistory = getChatHistory();
+  let chatHistory = localStorage.getItem('chatHistory');
+  chatHistory = chatHistory ? JSON.parse(chatHistory) : [];
+
   const prompt = document.getElementById('prompt').value;
-
-  const systemPrompt = "You are PotatoGPT, a helpful AI chatbot...";
-  const formattedHistory = formatChatHistory(chatHistory);
+  const systemPrompt = "You are PotatoGPT, a helpful AI chatbot. Continue the conversation naturally using the previous chat history.";
+  const formattedHistory = chatHistory.map(item => `You: ${item.prompt}\nPotatoGPT: ${item.response}`).join('\n');
   const promptWithHistory = `${systemPrompt}\n\n${formattedHistory}\nYou: ${prompt}\nPotatoGPT:`;
 
   try {
@@ -71,24 +71,28 @@ document.getElementById('ai-form').addEventListener('submit', async function(eve
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         prompt: promptWithHistory,
-        model: model  // <-- include model in request
+        model: selectedModel  // 🔥 Send selected model here
       }),
     });
 
     const data = await response.json();
     const taskId = data.task_id;
 
-    let result;
-    let status;
+    // Wait for result...
+    let status, result;
     do {
       const resultResponse = await fetch(`${API_BASE}/result/${taskId}`);
       const resultData = await resultResponse.json();
       status = resultData.status;
-
       if (status === 'done') {
         result = resultData.response;
         document.getElementById('response').innerText = result;
-        updateChatHistory(prompt, result);
+
+        // Update chat history
+        chatHistory.push({ prompt, response: result });
+        if (chatHistory.length > 50) chatHistory.shift();  // Limit size
+        localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+        renderChatHistory(chatHistory);
       } else {
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
@@ -99,6 +103,7 @@ document.getElementById('ai-form').addEventListener('submit', async function(eve
     document.getElementById('response').innerText = "Error fetching response.";
   }
 });
+
 
 // Load chat history on page load
 window.onload = function () {
