@@ -1,44 +1,40 @@
 // Set the API base URL
 const API_BASE = 'https://ai.potatogamer.uk';
 
-// Function to get cookies by name
-function getCookie(name) {
-  let match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-  return match ? match[2] : null;
+// Function to get chat history from localStorage
+function getChatHistory() {
+  const stored = localStorage.getItem('chatHistory');
+  try {
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
 }
 
-// Function to set cookies
-function setCookie(name, value, days) {
-  const d = new Date();
-  d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
-  let expires = "expires=" + d.toUTCString();
-  document.cookie = name + "=" + value + ";" + expires + ";path=/";
+// Function to save chat history to localStorage
+function setChatHistory(history) {
+  localStorage.setItem('chatHistory', JSON.stringify(history));
 }
 
-// Function to update the chat UI and store it in cookies
+// Function to update the chat UI and store it
 function updateChatHistory(prompt, response) {
-  let chatHistory = getCookie('chatHistory');
-  chatHistory = chatHistory ? JSON.parse(chatHistory) : [];
+  let chatHistory = getChatHistory();
 
-  // Add the new prompt and response to the history
-  chatHistory.push({ prompt: prompt, response: response });
+  chatHistory.push({ prompt, response });
 
-  // If history exceeds 10 entries, remove the oldest
-  if (chatHistory.length > 10) {
-    chatHistory.shift();
+  // Optional: limit history length (remove if unlimited is okay)
+  if (chatHistory.length > 100) {
+    chatHistory.shift(); // Keeps the most recent 100 messages
   }
 
-  // Save the updated history in cookies (convert it to a JSON string)
-  setCookie('chatHistory', JSON.stringify(chatHistory), 7);
-
-  // Render the updated chat history in the UI
+  setChatHistory(chatHistory);
   renderChatHistory(chatHistory);
 }
 
 // Function to render chat history in the UI
 function renderChatHistory(chatHistory) {
   const chatBox = document.getElementById('chat-history');
-  chatBox.innerHTML = ''; // Clear the current chat history in the UI
+  chatBox.innerHTML = ''; // Clear current chat
 
   chatHistory.forEach(item => {
     const chatItem = document.createElement('div');
@@ -48,32 +44,23 @@ function renderChatHistory(chatHistory) {
   });
 }
 
+// Format history for prompt
 function formatChatHistory(historyArray) {
   return historyArray.map(item => `You: ${item.prompt}\nPotatoGPT: ${item.response}`).join('\n');
 }
 
-// Function to handle form submission and send prompt to the server
+// Handle form submission
 document.getElementById('ai-form').addEventListener('submit', async function(event) {
   event.preventDefault();
   document.getElementById('response').innerText = "Thinking...";
-  
-  let chatHistory = getCookie('chatHistory');
-  if (chatHistory) {
-    try {
-      chatHistory = JSON.parse(chatHistory); // ✅ Convert string to object
-    } catch (e) {
-      chatHistory = []; // Fallback if JSON is malformed
-    }
-  } else {
-    chatHistory = [];
-  }
 
+  let chatHistory = getChatHistory();
   const prompt = document.getElementById('prompt').value;
+
   const systemPrompt = "You are PotatoGPT, a helpful AI chatbot. Continue the conversation naturally using the previous chat history. Do not repeat or describe the history — just answer the new user input appropriately.";
 
   const formattedHistory = formatChatHistory(chatHistory);
   const promptWithHistory = `${systemPrompt}\n\n${formattedHistory}\nYou: ${prompt}\nPotatoGPT:`;
-
 
   try {
     const response = await fetch(`${API_BASE}/ask`, {
@@ -85,7 +72,6 @@ document.getElementById('ai-form').addEventListener('submit', async function(eve
     const data = await response.json();
     const taskId = data.task_id;
 
-    // Get the result after processing
     let result;
     let status;
     do {
@@ -96,9 +82,9 @@ document.getElementById('ai-form').addEventListener('submit', async function(eve
       if (status === 'done') {
         result = resultData.response;
         document.getElementById('response').innerText = result;
-        updateChatHistory(prompt, result); // Update chat history with the new response
+        updateChatHistory(prompt, result);
       } else {
-        await new Promise(resolve => setTimeout(resolve, 1000)); // wait before retrying
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
     } while (status !== 'done');
 
@@ -108,23 +94,15 @@ document.getElementById('ai-form').addEventListener('submit', async function(eve
   }
 });
 
-// On page load, load and render the chat history from cookies
+// Load chat history on page load
 window.onload = function () {
-  const chatHistory = getCookie('chatHistory');
-  if (chatHistory) {
-    renderChatHistory(JSON.parse(chatHistory));
-  }
+  const chatHistory = getChatHistory();
+  renderChatHistory(chatHistory);
 };
 
-// Function to delete a cookie
-function deleteCookie(name) {
-  document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-}
-
-// Event listener for the Clear Chat History button
-document.getElementById('clear-chat-history').addEventListener('click', function () {
-  deleteCookie('chatHistory');
-  document.getElementById('chat-history').innerHTML = '';
+// Optional: Clear chat history button
+document.getElementById('clear-history').addEventListener('click', function () {
+  localStorage.removeItem('chatHistory');
+  renderChatHistory([]);
   document.getElementById('response').innerText = '';
-  alert("Chat history has been cleared.");
 });
