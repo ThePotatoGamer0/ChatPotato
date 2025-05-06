@@ -115,3 +115,16 @@ window.onload = function () {
     renderChatHistory(JSON.parse(chatHistory));
   }
 };
+
+// Function to delete a cookie
+function deleteCookie(name) {
+  document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+}
+
+// Event listener for the Clear Chat History button
+document.getElementById('clear-chat-history').addEventListener('click', function () {
+  deleteCookie('chatHistory');
+  document.getElementById('chat-history').innerHTML = '';
+  document.getElementById('response').innerText = '';
+  alert("Chat history has been cleared.");
+});
